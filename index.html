@@ -444,7 +444,6 @@
 
         // Constants for timing and thresholds
         const FINALE_COMPLETION_DELAY_MS = 5000; // Wait 5s after finale starts before checking for completion
-        const TARGET_OVERSHOOT_THRESHOLD = 50; // Pixels past target to still trigger explosion
         const ROCKET_MAX_AGE = 200; // Max frames before forcing explosion (safety)
 
         const colors = [
@@ -624,8 +623,11 @@
                 this.vy += 0.1;
                 this.age++;
 
-                // Explode if reached target, passed it, or been alive too long (safety)
-                if (this.y <= this.targetY || (this.vy > 0 && this.y < this.targetY + TARGET_OVERSHOOT_THRESHOLD) || this.age > ROCKET_MAX_AGE) {
+                // Explode if:
+                // 1. Reached target going up: this.y <= this.targetY
+                // 2. Started falling before reaching target: this.vy > 0 (falling downward)
+                // 3. Safety timeout: been alive too long
+                if (this.y <= this.targetY || this.vy > 0 || this.age > ROCKET_MAX_AGE) {
                     this.explode();
                     return false;
                 }
@@ -890,9 +892,11 @@
 
             // Check if finale has completed and show text
             // Wait for FINALE_COMPLETION_DELAY_MS after finale starts to ensure all delayed particles (crossette) are created
-            const timeSinceFinale = Date.now() - finaleStartTime;
-            if (finaleStarted && !textShown && timeSinceFinale > FINALE_COMPLETION_DELAY_MS && rockets.length === 0 && particles.length === 0) {
-                showText();
+            if (finaleStarted && !textShown) {
+                const timeSinceFinale = Date.now() - finaleStartTime;
+                if (timeSinceFinale > FINALE_COMPLETION_DELAY_MS && rockets.length === 0 && particles.length === 0) {
+                    showText();
+                }
             }
 
             requestAnimationFrame(animate);
