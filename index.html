@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2026 新年快乐 🎆</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a14 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            touch-action: none;
+            cursor: crosshair;
+        }
+
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .text-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            opacity: 0;
+            animation: overlay-in 2s ease-out forwards;
+            animation-delay: var(--text-delay, 0s);
+        }
+
+        .deco-line {
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #FFD700, #FFA500, #FFD700, transparent);
+            margin: clamp(10px, 3vh, 30px) 0;
+            animation: line-expand 1.5s ease-out forwards;
+            animation-delay: calc(var(--text-delay, 0s) + 0.5s);
+        }
+
+        .deco-line.top {
+            margin-bottom: clamp(15px, 4vh, 40px);
+        }
+
+        .deco-line.bottom {
+            margin-top: clamp(15px, 4vh, 40px);
+        }
+
+        .year-2026 {
+            font-size: clamp(60px, 15vw, 180px);
+            font-weight: 900;
+            background: linear-gradient(135deg, 
+                #FFD700 0%, #FFA500 25%, #FF6347 50%, #FFD700 75%, #FFA500 100%);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-flow 3s ease-in-out infinite;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: gradient-flow 3s ease-in-out infinite, float-up 1.5s ease-out;
+            animation-delay: calc(var(--text-delay, 0s) + 0.3s), calc(var(--text-delay, 0s) + 0.3s);
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
+            letter-spacing: 0.05em;
+        }
+
+        .year-2026::after {
+            content: '2026';
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            filter: blur(30px);
+            opacity: 0.7;
+            animation: glow-pulse 2s ease-in-out infinite;
+        }
+
+        .chinese-greeting {
+            font-size: clamp(32px, 8vw, 80px);
+            font-weight: 700;
+            margin-top: clamp(10px, 2vh, 20px);
+            letter-spacing: 0.1em;
+            display: flex;
+            gap: clamp(8px, 2vw, 20px);
+        }
+
+        .chinese-greeting span {
+            display: inline-block;
+            background: linear-gradient(135deg, #FFD700, #FFA500, #FF6347);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: char-gradient 3s ease-in-out infinite;
+            position: relative;
+            filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.5));
+        }
+
+        .chinese-greeting span:nth-child(1) { animation-delay: 0s; }
+        .chinese-greeting span:nth-child(2) { animation-delay: 0.3s; }
+        .chinese-greeting span:nth-child(3) { animation-delay: 0.6s; }
+        .chinese-greeting span:nth-child(4) { animation-delay: 0.9s; }
+
+        .chinese-greeting span::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #FFD700, transparent);
+            animation: underline-expand 1s ease-out forwards;
+            animation-delay: calc(var(--text-delay, 0s) + 1.5s + var(--char-delay, 0s));
+        }
+
+        .english-subtitle {
+            font-size: clamp(14px, 3vw, 24px);
+            font-weight: 600;
+            margin-top: clamp(15px, 3vh, 30px);
+            background: linear-gradient(90deg, 
+                #FF6B9D, #FFA500, #FFD700, #4ECDC4, #95E1D3, #FFD700, #FFA500, #FF6B9D);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-slide 4s linear infinite;
+            letter-spacing: 0.15em;
+        }
+
+        .zodiac-blessing {
+            font-size: clamp(12px, 2.5vw, 20px);
+            color: #FFD700;
+            margin-top: clamp(10px, 2vh, 20px);
+            opacity: 0;
+            animation: fade-up 1.5s ease-out forwards;
+            animation-delay: calc(var(--text-delay, 0s) + 2s);
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+        }
+
+        .corner {
+            position: absolute;
+            width: clamp(40px, 8vw, 80px);
+            height: clamp(40px, 8vw, 80px);
+            border: 2px solid #FFD700;
+            opacity: 0;
+            animation: corner-in 1s ease-out forwards;
+        }
+
+        .corner::before {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #FFD700;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #FFD700;
+        }
+
+        .corner.top-left {
+            top: clamp(20px, 5vh, 50px);
+            left: clamp(20px, 5vw, 50px);
+            border-right: none;
+            border-bottom: none;
+            animation-delay: calc(var(--text-delay, 0s) + 1s);
+        }
+
+        .corner.top-left::before {
+            top: -4px;
+            left: -4px;
+        }
+
+        .corner.top-right {
+            top: clamp(20px, 5vh, 50px);
+            right: clamp(20px, 5vw, 50px);
+            border-left: none;
+            border-bottom: none;
+            animation-delay: calc(var(--text-delay, 0s) + 1.2s);
+        }
+
+        .corner.top-right::before {
+            top: -4px;
+            right: -4px;
+        }
+
+        .corner.bottom-left {
+            bottom: clamp(20px, 5vh, 50px);
+            left: clamp(20px, 5vw, 50px);
+            border-right: none;
+            border-top: none;
+            animation-delay: calc(var(--text-delay, 0s) + 1.4s);
+        }
+
+        .corner.bottom-left::before {
+            bottom: -4px;
+            left: -4px;
+        }
+
+        .corner.bottom-right {
+            bottom: clamp(20px, 5vh, 50px);
+            right: clamp(20px, 5vw, 50px);
+            border-left: none;
+            border-top: none;
+            animation-delay: calc(var(--text-delay, 0s) + 1.6s);
+        }
+
+        .corner.bottom-right::before {
+            bottom: -4px;
+            right: -4px;
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: sparkle-float 3s ease-in-out infinite;
+            opacity: 0;
+        }
+
+        .hint-text {
+            position: absolute;
+            bottom: clamp(30px, 6vh, 60px);
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: clamp(12px, 2.5vw, 18px);
+            color: rgba(255, 255, 255, 0.7);
+            opacity: 0;
+            animation: fade-up 1.5s ease-out forwards;
+            animation-delay: 4s;
+            pointer-events: none;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        @keyframes overlay-in {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes gradient-flow {
+            0%, 100% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        @keyframes gradient-slide {
+            0% {
+                background-position: 0% 50%;
+            }
+            100% {
+                background-position: 400% 50%;
+            }
+        }
+
+        @keyframes float-up {
+            from {
+                opacity: 0;
+                transform: translateY(30px) rotateX(20deg);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) rotateX(0deg);
+            }
+        }
+
+        @keyframes fade-up {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes line-expand {
+            from {
+                width: 0;
+            }
+            to {
+                width: clamp(200px, 50vw, 500px);
+            }
+        }
+
+        @keyframes underline-expand {
+            from {
+                width: 0;
+            }
+            to {
+                width: 100%;
+            }
+        }
+
+        @keyframes corner-in {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes sparkle-float {
+            0%, 100% {
+                opacity: 0;
+                transform: translateY(0) scale(0);
+            }
+            50% {
+                opacity: 1;
+                transform: translateY(-30px) scale(1);
+            }
+        }
+
+        @keyframes char-gradient {
+            0%, 100% {
+                background-position: 0% 50%;
+                filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.5));
+            }
+            50% {
+                background-position: 200% 50%;
+                filter: drop-shadow(0 0 25px rgba(255, 165, 0, 0.8));
+            }
+        }
+
+        @keyframes glow-pulse {
+            0%, 100% {
+                opacity: 0.5;
+                filter: blur(30px);
+            }
+            50% {
+                opacity: 0.9;
+                filter: blur(40px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <div class="text-overlay" style="--text-delay: 0s;">
+        <div class="corner top-left"></div>
+        <div class="corner top-right"></div>
+        <div class="corner bottom-left"></div>
+        <div class="corner bottom-right"></div>
+        
+        <div class="deco-line top"></div>
+        
+        <div class="year-2026">2026</div>
+        
+        <div class="chinese-greeting">
+            <span style="--char-delay: 0s;">新</span>
+            <span style="--char-delay: 0.3s;">年</span>
+            <span style="--char-delay: 0.6s;">快</span>
+            <span style="--char-delay: 0.9s;">乐</span>
+        </div>
+        
+        <div class="english-subtitle">✦ HAPPY NEW YEAR ✦</div>
+        
+        <div class="zodiac-blessing">丙午马年 · 万事如意</div>
+        
+        <div class="deco-line bottom"></div>
+    </div>
+    
+    <div class="hint-text">点击屏幕任意位置释放烟花 🎇</div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        
+        let width, height;
+        let particles = [];
+        let rockets = [];
+        let stars = [];
+        let shootingStars = [];
+        let autoLaunchCount = 0;
+        let finaleMode = false;
+        let textShown = false;
+        let interactiveMode = false;
+
+        const colors = [
+            '#FF6B9D', '#FFA500', '#FFD700', '#FF6347', '#FF1493',
+            '#FF69B4', '#FF4500', '#FFD700', '#FFFF00', '#00FF00',
+            '#00FFFF', '#1E90FF', '#9370DB', '#FF00FF', '#FF1493',
+            '#FFA07A', '#FFB6C1', '#87CEEB', '#98FB98', '#DDA0DD',
+            '#F0E68C', '#E6E6FA', '#FFC0CB', '#FFDAB9', '#B0E0E6'
+        ];
+
+        const sparkleColors = [
+            '#FFD700', '#FFA500', '#FF6347', '#FF69B4',
+            '#00FFFF', '#1E90FF', '#9370DB', '#FF00FF'
+        ];
+
+        function resizeCanvas() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            canvas.style.width = width + 'px';
+            canvas.style.height = height + 'px';
+            ctx.scale(dpr, dpr);
+        }
+
+        class Star {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height * 0.7;
+                this.size = Math.random() * 2;
+                this.brightness = Math.random();
+                this.twinkleSpeed = Math.random() * 0.02 + 0.01;
+                this.phase = Math.random() * Math.PI * 2;
+                this.hasCross = this.size > 1.2 && Math.random() > 0.8;
+            }
+
+            update() {
+                this.phase += this.twinkleSpeed;
+                this.brightness = (Math.sin(this.phase) + 1) / 2;
+            }
+
+            draw() {
+                const alpha = 0.3 + this.brightness * 0.7;
+                ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (this.hasCross) {
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.5})`;
+                    ctx.lineWidth = 0.5;
+                    ctx.beginPath();
+                    ctx.moveTo(this.x - this.size * 3, this.y);
+                    ctx.lineTo(this.x + this.size * 3, this.y);
+                    ctx.moveTo(this.x, this.y - this.size * 3);
+                    ctx.lineTo(this.x, this.y + this.size * 3);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        class ShootingStar {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height * 0.3;
+                this.vx = Math.random() * 3 + 2;
+                this.vy = Math.random() * 2 + 1;
+                this.length = Math.random() * 50 + 30;
+                this.life = 1;
+                this.fadeSpeed = 0.01 + Math.random() * 0.02;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= this.fadeSpeed;
+                return this.life > 0;
+            }
+
+            draw() {
+                ctx.strokeStyle = `rgba(255, 255, 255, ${this.life})`;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(this.x - this.vx * this.length / 3, this.y - this.vy * this.length / 3);
+                ctx.stroke();
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color, angle, speed, life, type = 'normal') {
+                this.x = x;
+                this.y = y;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.color = color;
+                this.life = life;
+                this.maxLife = life;
+                this.type = type;
+                this.gravity = 0.05;
+                this.airResistance = 0.98;
+                this.size = Math.random() * 2 + 1;
+                this.trail = [];
+                this.maxTrailLength = 10;
+            }
+
+            update() {
+                this.trail.push({ x: this.x, y: this.y });
+                if (this.trail.length > this.maxTrailLength) {
+                    this.trail.shift();
+                }
+
+                this.vx *= this.airResistance;
+                this.vy *= this.airResistance;
+                this.vy += this.gravity;
+                
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life--;
+
+                return this.life > 0;
+            }
+
+            draw() {
+                const alpha = this.life / this.maxLife;
+                
+                if (this.trail.length > 1) {
+                    for (let i = 0; i < this.trail.length - 1; i++) {
+                        const trailAlpha = (i / this.trail.length) * alpha * 0.5;
+                        ctx.strokeStyle = `${this.color}${Math.floor(trailAlpha * 255).toString(16).padStart(2, '0')}`;
+                        ctx.lineWidth = this.size * 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(this.trail[i].x, this.trail[i].y);
+                        ctx.lineTo(this.trail[i + 1].x, this.trail[i + 1].y);
+                        ctx.stroke();
+                    }
+                }
+
+                const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 3);
+                gradient.addColorStop(0, `rgba(255, 255, 255, ${alpha})`);
+                gradient.addColorStop(0.3, `${this.color}${Math.floor(alpha * 255).toString(16).padStart(2, '0')}`);
+                gradient.addColorStop(1, `${this.color}00`);
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * 3, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * 0.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        class Rocket {
+            constructor(x, targetY) {
+                this.x = x;
+                this.y = height;
+                this.targetY = targetY;
+                this.vy = -8 - Math.random() * 3;
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.trail = [];
+                this.exploded = false;
+            }
+
+            update() {
+                if (this.exploded) return false;
+
+                this.trail.push({ x: this.x, y: this.y });
+                if (this.trail.length > 20) {
+                    this.trail.shift();
+                }
+
+                this.y += this.vy;
+                this.vy += 0.1;
+
+                if (this.y <= this.targetY) {
+                    this.explode();
+                    return false;
+                }
+
+                return true;
+            }
+
+            draw() {
+                for (let i = 0; i < this.trail.length; i++) {
+                    const alpha = i / this.trail.length;
+                    ctx.fillStyle = `${this.color}${Math.floor(alpha * 255).toString(16).padStart(2, '0')}`;
+                    ctx.beginPath();
+                    ctx.arc(this.trail[i].x, this.trail[i].y, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, 5);
+                gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+                gradient.addColorStop(0.5, this.color);
+                gradient.addColorStop(1, `${this.color}00`);
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            explode() {
+                this.exploded = true;
+                const types = ['sphere', 'ring', 'double', 'willow', 'chrysanthemum', 'star', 'heart', 'palm', 'crossette', 'fountain'];
+                const type = types[Math.floor(Math.random() * types.length)];
+                createFirework(this.x, this.y, this.color, type);
+            }
+        }
+
+        function createFirework(x, y, color, type = 'sphere') {
+            const particleCount = type === 'ring' ? 40 : type === 'double' ? 80 : type === 'chrysanthemum' ? 100 : 60;
+            const life = 100;
+
+            switch (type) {
+                case 'sphere':
+                    for (let i = 0; i < particleCount; i++) {
+                        const angle = (Math.PI * 2 * i) / particleCount;
+                        const speed = Math.random() * 3 + 3;
+                        particles.push(new Particle(x, y, color, angle, speed, life));
+                    }
+                    break;
+
+                case 'ring':
+                    for (let i = 0; i < particleCount; i++) {
+                        const angle = (Math.PI * 2 * i) / particleCount;
+                        const speed = 4;
+                        particles.push(new Particle(x, y, color, angle, speed, life));
+                    }
+                    break;
+
+                case 'double':
+                    for (let i = 0; i < particleCount / 2; i++) {
+                        const angle = (Math.PI * 2 * i) / (particleCount / 2);
+                        particles.push(new Particle(x, y, color, angle, 3, life));
+                        particles.push(new Particle(x, y, color, angle, 5, life));
+                    }
+                    break;
+
+                case 'willow':
+                    for (let i = 0; i < particleCount; i++) {
+                        const angle = (Math.PI * 2 * i) / particleCount - Math.PI / 2;
+                        const speed = Math.random() * 2 + 2;
+                        const p = new Particle(x, y, color, angle, speed, life * 1.5);
+                        p.gravity = 0.15;
+                        particles.push(p);
+                    }
+                    break;
+
+                case 'chrysanthemum':
+                    for (let i = 0; i < particleCount; i++) {
+                        const angle = (Math.PI * 2 * i) / particleCount;
+                        const speed = Math.random() * 4 + 2;
+                        const p = new Particle(x, y, color, angle, speed, life * 0.8);
+                        p.airResistance = 0.95;
+                        particles.push(p);
+                    }
+                    break;
+
+                case 'star':
+                    const points = 5;
+                    const particlesPerPoint = particleCount / points;
+                    for (let i = 0; i < points; i++) {
+                        const angle = (Math.PI * 2 * i) / points - Math.PI / 2;
+                        for (let j = 0; j < particlesPerPoint; j++) {
+                            const spread = (j / particlesPerPoint - 0.5) * 0.5;
+                            const speed = 3 + j / particlesPerPoint * 2;
+                            particles.push(new Particle(x, y, color, angle + spread, speed, life));
+                        }
+                    }
+                    break;
+
+                case 'heart':
+                    for (let i = 0; i < particleCount; i++) {
+                        const t = (i / particleCount) * Math.PI * 2;
+                        const hx = 16 * Math.pow(Math.sin(t), 3);
+                        const hy = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+                        const angle = Math.atan2(hy, hx);
+                        const speed = 2;
+                        particles.push(new Particle(x, y, color, angle, speed, life));
+                    }
+                    break;
+
+                case 'palm':
+                    for (let i = 0; i < particleCount; i++) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const speed = Math.random() * 1.5 + 1;
+                        const p = new Particle(x, y, color, angle, speed, life * 2);
+                        p.gravity = 0.08;
+                        p.airResistance = 0.99;
+                        particles.push(p);
+                    }
+                    break;
+
+                case 'crossette':
+                    const clusters = 8;
+                    const particlesPerCluster = particleCount / clusters;
+                    for (let i = 0; i < clusters; i++) {
+                        const angle = (Math.PI * 2 * i) / clusters;
+                        const clusterX = x + Math.cos(angle) * 30;
+                        const clusterY = y + Math.sin(angle) * 30;
+                        
+                        setTimeout(() => {
+                            for (let j = 0; j < particlesPerCluster; j++) {
+                                const subAngle = (Math.PI * 2 * j) / particlesPerCluster;
+                                const speed = Math.random() * 2 + 1;
+                                particles.push(new Particle(clusterX, clusterY, color, subAngle, speed, life * 0.6));
+                            }
+                        }, 200);
+                    }
+                    
+                    for (let i = 0; i < clusters; i++) {
+                        const angle = (Math.PI * 2 * i) / clusters;
+                        const speed = 5;
+                        particles.push(new Particle(x, y, color, angle, speed, 20));
+                    }
+                    break;
+
+                case 'fountain':
+                    for (let i = 0; i < particleCount; i++) {
+                        const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI / 3;
+                        const speed = Math.random() * 4 + 3;
+                        const p = new Particle(x, y, color, angle, speed, life);
+                        p.gravity = 0.1;
+                        particles.push(p);
+                    }
+                    break;
+            }
+        }
+
+        function launchRocket(x, targetY) {
+            rockets.push(new Rocket(x, targetY));
+        }
+
+        function autoLaunch() {
+            if (autoLaunchCount < 22 && !finaleMode) {
+                const x = Math.random() * width * 0.6 + width * 0.2;
+                const targetY = Math.random() * height * 0.3 + height * 0.1;
+                launchRocket(x, targetY);
+                autoLaunchCount++;
+                
+                const delay = Math.random() * 500 + 300;
+                setTimeout(autoLaunch, delay);
+            } else if (autoLaunchCount >= 22 && !finaleMode) {
+                finaleMode = true;
+                setTimeout(launchFinale, 500);
+            }
+        }
+
+        function launchFinale() {
+            const finaleCount = 16;
+            for (let i = 0; i < finaleCount; i++) {
+                setTimeout(() => {
+                    const leftX = width * 0.2 + Math.random() * width * 0.1;
+                    const rightX = width * 0.7 + Math.random() * width * 0.1;
+                    const targetY = height * 0.15 + Math.random() * height * 0.2;
+                    
+                    launchRocket(leftX, targetY);
+                    launchRocket(rightX, targetY);
+                }, i * 100);
+            }
+
+            setTimeout(showText, 3000);
+        }
+
+        function showText() {
+            if (!textShown) {
+                textShown = true;
+                const overlay = document.querySelector('.text-overlay');
+                overlay.style.setProperty('--text-delay', '0s');
+                
+                setTimeout(() => {
+                    interactiveMode = true;
+                }, 2000);
+
+                createSparkles();
+            }
+        }
+
+        function createSparkles() {
+            const sparkleContainer = document.querySelector('.text-overlay');
+            for (let i = 0; i < 60; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.style.left = Math.random() * 100 + '%';
+                sparkle.style.top = Math.random() * 100 + '%';
+                sparkle.style.background = sparkleColors[Math.floor(Math.random() * sparkleColors.length)];
+                sparkle.style.animationDelay = Math.random() * 3 + 's';
+                sparkle.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                sparkleContainer.appendChild(sparkle);
+            }
+        }
+
+        function drawMilkyWay() {
+            const gradient = ctx.createRadialGradient(width / 2, height / 3, 0, width / 2, height / 3, width / 2);
+            gradient.addColorStop(0, 'rgba(200, 200, 255, 0.03)');
+            gradient.addColorStop(0.5, 'rgba(150, 150, 255, 0.02)');
+            gradient.addColorStop(1, 'rgba(100, 100, 255, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+        }
+
+        function animate() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, width, height);
+
+            drawMilkyWay();
+
+            stars.forEach(star => {
+                star.update();
+                star.draw();
+            });
+
+            shootingStars = shootingStars.filter(star => {
+                const alive = star.update();
+                if (alive) star.draw();
+                return alive;
+            });
+
+            if (Math.random() < 0.01 && shootingStars.length < 3) {
+                shootingStars.push(new ShootingStar());
+            }
+
+            rockets = rockets.filter(rocket => {
+                const alive = rocket.update();
+                if (alive) rocket.draw();
+                return alive;
+            });
+
+            particles = particles.filter(particle => {
+                const alive = particle.update();
+                if (alive) particle.draw();
+                return alive;
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        function handleClick(e) {
+            if (!interactiveMode) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const clickCount = Math.floor(Math.random() * 3) + 1;
+            
+            for (let i = 0; i < clickCount; i++) {
+                const offsetX = (Math.random() - 0.5) * 100;
+                const offsetY = (Math.random() - 0.5) * 100;
+                const x = (e.clientX || e.touches[0].clientX) - rect.left + offsetX;
+                const targetY = Math.max(50, ((e.clientY || e.touches[0].clientY) - rect.top + offsetY) * 0.5);
+                
+                setTimeout(() => {
+                    launchRocket(x, targetY);
+                }, i * 100);
+            }
+        }
+
+        function init() {
+            resizeCanvas();
+            
+            for (let i = 0; i < 300; i++) {
+                stars.push(new Star());
+            }
+
+            setTimeout(autoLaunch, 500);
+
+            canvas.addEventListener('click', handleClick);
+            canvas.addEventListener('touchstart', handleClick, { passive: false });
+            
+            window.addEventListener('resize', resizeCanvas);
+
+            animate();
+        }
+
+        init();
+    </script>
+</body>
+</html>
