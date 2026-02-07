@@ -42,8 +42,12 @@
             align-items: center;
             pointer-events: none;
             opacity: 0;
+            visibility: hidden;
+        }
+
+        .text-overlay.show {
             animation: overlay-in 2s ease-out forwards;
-            animation-delay: var(--text-delay, 0s);
+            visibility: visible;
         }
 
         .deco-line {
@@ -51,8 +55,11 @@
             height: 2px;
             background: linear-gradient(90deg, transparent, #FFD700, #FFA500, #FFD700, transparent);
             margin: clamp(10px, 3vh, 30px) 0;
+        }
+
+        .text-overlay.show .deco-line {
             animation: line-expand 1.5s ease-out forwards;
-            animation-delay: calc(var(--text-delay, 0s) + 0.5s);
+            animation-delay: 0.5s;
         }
 
         .deco-line.top {
@@ -72,13 +79,15 @@
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: gradient-flow 3s ease-in-out infinite;
             position: relative;
             transform-style: preserve-3d;
-            animation: gradient-flow 3s ease-in-out infinite, float-up 1.5s ease-out;
-            animation-delay: calc(var(--text-delay, 0s) + 0.3s), calc(var(--text-delay, 0s) + 0.3s);
             filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
             letter-spacing: 0.05em;
+        }
+
+        .text-overlay.show .year-2026 {
+            animation: gradient-flow 3s ease-in-out infinite, float-up 1.5s ease-out;
+            animation-delay: 0.3s, 0.3s;
         }
 
         .year-2026::after {
@@ -127,8 +136,11 @@
             width: 0;
             height: 3px;
             background: linear-gradient(90deg, transparent, #FFD700, transparent);
+        }
+
+        .text-overlay.show .chinese-greeting span::after {
             animation: underline-expand 1s ease-out forwards;
-            animation-delay: calc(var(--text-delay, 0s) + 1.5s + var(--char-delay, 0s));
+            animation-delay: calc(1.5s + var(--char-delay, 0s));
         }
 
         .english-subtitle {
@@ -150,9 +162,12 @@
             color: #FFD700;
             margin-top: clamp(10px, 2vh, 20px);
             opacity: 0;
-            animation: fade-up 1.5s ease-out forwards;
-            animation-delay: calc(var(--text-delay, 0s) + 2s);
             text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+        }
+
+        .text-overlay.show .zodiac-blessing {
+            animation: fade-up 1.5s ease-out forwards;
+            animation-delay: 2s;
         }
 
         .corner {
@@ -161,6 +176,9 @@
             height: clamp(40px, 8vw, 80px);
             border: 2px solid #FFD700;
             opacity: 0;
+        }
+
+        .text-overlay.show .corner {
             animation: corner-in 1s ease-out forwards;
         }
 
@@ -179,7 +197,10 @@
             left: clamp(20px, 5vw, 50px);
             border-right: none;
             border-bottom: none;
-            animation-delay: calc(var(--text-delay, 0s) + 1s);
+        }
+
+        .text-overlay.show .corner.top-left {
+            animation-delay: 1s;
         }
 
         .corner.top-left::before {
@@ -192,7 +213,10 @@
             right: clamp(20px, 5vw, 50px);
             border-left: none;
             border-bottom: none;
-            animation-delay: calc(var(--text-delay, 0s) + 1.2s);
+        }
+
+        .text-overlay.show .corner.top-right {
+            animation-delay: 1.2s;
         }
 
         .corner.top-right::before {
@@ -205,7 +229,10 @@
             left: clamp(20px, 5vw, 50px);
             border-right: none;
             border-top: none;
-            animation-delay: calc(var(--text-delay, 0s) + 1.4s);
+        }
+
+        .text-overlay.show .corner.bottom-left {
+            animation-delay: 1.4s;
         }
 
         .corner.bottom-left::before {
@@ -218,7 +245,10 @@
             right: clamp(20px, 5vw, 50px);
             border-left: none;
             border-top: none;
-            animation-delay: calc(var(--text-delay, 0s) + 1.6s);
+        }
+
+        .text-overlay.show .corner.bottom-right {
+            animation-delay: 1.6s;
         }
 
         .corner.bottom-right::before {
@@ -369,7 +399,7 @@
 <body>
     <canvas id="canvas"></canvas>
     
-    <div class="text-overlay" style="--text-delay: 0s;">
+    <div class="text-overlay">
         <div class="corner top-left"></div>
         <div class="corner top-right"></div>
         <div class="corner bottom-left"></div>
@@ -407,6 +437,8 @@
         let shootingStars = [];
         let autoLaunchCount = 0;
         let finaleMode = false;
+        let finaleStarted = false;
+        let finaleStartTime = 0;
         let textShown = false;
         let interactiveMode = false;
 
@@ -572,6 +604,7 @@
                 this.color = colors[Math.floor(Math.random() * colors.length)];
                 this.trail = [];
                 this.exploded = false;
+                this.age = 0;
             }
 
             update() {
@@ -584,8 +617,10 @@
 
                 this.y += this.vy;
                 this.vy += 0.1;
+                this.age++;
 
-                if (this.y <= this.targetY) {
+                // Explode if reached target, passed it, or been alive too long (safety)
+                if (this.y <= this.targetY || (this.vy > 0 && this.y < this.targetY + 50) || this.age > 200) {
                     this.explode();
                     return false;
                 }
@@ -770,24 +805,26 @@
                     
                     launchRocket(leftX, targetY);
                     launchRocket(rightX, targetY);
+                    
+                    if (i === 0) {
+                        finaleStarted = true;
+                        finaleStartTime = Date.now();
+                    }
                 }, i * 100);
             }
-
-            setTimeout(showText, 3000);
         }
 
         function showText() {
-            if (!textShown) {
-                textShown = true;
-                const overlay = document.querySelector('.text-overlay');
-                overlay.style.setProperty('--text-delay', '0s');
-                
-                setTimeout(() => {
-                    interactiveMode = true;
-                }, 2000);
+            if (textShown) return;
+            textShown = true;
+            const overlay = document.querySelector('.text-overlay');
+            overlay.classList.add('show');
+            
+            setTimeout(() => {
+                interactiveMode = true;
+            }, 2000);
 
-                createSparkles();
-            }
+            createSparkles();
         }
 
         function createSparkles() {
@@ -845,6 +882,13 @@
                 if (alive) particle.draw();
                 return alive;
             });
+
+            // Check if finale has completed and show text
+            // Wait at least 5 seconds after finale starts to ensure all delayed particles (crossette) are created
+            const timeSinceFinale = Date.now() - finaleStartTime;
+            if (finaleStarted && !textShown && timeSinceFinale > 5000 && rockets.length === 0 && particles.length === 0) {
+                showText();
+            }
 
             requestAnimationFrame(animate);
         }
