@@ -42,8 +42,12 @@
             align-items: center;
             pointer-events: none;
             opacity: 0;
+            visibility: hidden;
+        }
+
+        .text-overlay.show {
+            visibility: visible;
             animation: overlay-in 2s ease-out forwards;
-            animation-delay: var(--text-delay, 0s);
         }
 
         .deco-line {
@@ -51,8 +55,11 @@
             height: 2px;
             background: linear-gradient(90deg, transparent, #FFD700, #FFA500, #FFD700, transparent);
             margin: clamp(10px, 3vh, 30px) 0;
+        }
+
+        .text-overlay.show .deco-line {
             animation: line-expand 1.5s ease-out forwards;
-            animation-delay: calc(var(--text-delay, 0s) + 0.5s);
+            animation-delay: 0.5s;
         }
 
         .deco-line.top {
@@ -72,13 +79,15 @@
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: gradient-flow 3s ease-in-out infinite;
             position: relative;
             transform-style: preserve-3d;
-            animation: gradient-flow 3s ease-in-out infinite, float-up 1.5s ease-out;
-            animation-delay: calc(var(--text-delay, 0s) + 0.3s), calc(var(--text-delay, 0s) + 0.3s);
             filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
             letter-spacing: 0.05em;
+        }
+
+        .text-overlay.show .year-2026 {
+            animation: gradient-flow 3s ease-in-out infinite, float-up 1.5s ease-out;
+            animation-delay: 0.3s, 0.3s;
         }
 
         .year-2026::after {
@@ -108,15 +117,18 @@
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: char-gradient 3s ease-in-out infinite;
             position: relative;
             filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.5));
         }
 
-        .chinese-greeting span:nth-child(1) { animation-delay: 0s; }
-        .chinese-greeting span:nth-child(2) { animation-delay: 0.3s; }
-        .chinese-greeting span:nth-child(3) { animation-delay: 0.6s; }
-        .chinese-greeting span:nth-child(4) { animation-delay: 0.9s; }
+        .text-overlay.show .chinese-greeting span {
+            animation: char-gradient 3s ease-in-out infinite;
+        }
+
+        .text-overlay.show .chinese-greeting span:nth-child(1) { animation-delay: 0s; }
+        .text-overlay.show .chinese-greeting span:nth-child(2) { animation-delay: 0.3s; }
+        .text-overlay.show .chinese-greeting span:nth-child(3) { animation-delay: 0.6s; }
+        .text-overlay.show .chinese-greeting span:nth-child(4) { animation-delay: 0.9s; }
 
         .chinese-greeting span::after {
             content: '';
@@ -127,9 +139,16 @@
             width: 0;
             height: 3px;
             background: linear-gradient(90deg, transparent, #FFD700, transparent);
-            animation: underline-expand 1s ease-out forwards;
-            animation-delay: calc(var(--text-delay, 0s) + 1.5s + var(--char-delay, 0s));
         }
+
+        .text-overlay.show .chinese-greeting span::after {
+            animation: underline-expand 1s ease-out forwards;
+        }
+
+        .text-overlay.show .chinese-greeting span:nth-child(1)::after { animation-delay: 1.5s; }
+        .text-overlay.show .chinese-greeting span:nth-child(2)::after { animation-delay: 1.8s; }
+        .text-overlay.show .chinese-greeting span:nth-child(3)::after { animation-delay: 2.1s; }
+        .text-overlay.show .chinese-greeting span:nth-child(4)::after { animation-delay: 2.4s; }
 
         .english-subtitle {
             font-size: clamp(14px, 3vw, 24px);
@@ -141,8 +160,11 @@
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: gradient-slide 4s linear infinite;
             letter-spacing: 0.15em;
+        }
+
+        .text-overlay.show .english-subtitle {
+            animation: gradient-slide 4s linear infinite;
         }
 
         .zodiac-blessing {
@@ -150,9 +172,12 @@
             color: #FFD700;
             margin-top: clamp(10px, 2vh, 20px);
             opacity: 0;
-            animation: fade-up 1.5s ease-out forwards;
-            animation-delay: calc(var(--text-delay, 0s) + 2s);
             text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+        }
+
+        .text-overlay.show .zodiac-blessing {
+            animation: fade-up 1.5s ease-out forwards;
+            animation-delay: 2s;
         }
 
         .corner {
@@ -161,6 +186,9 @@
             height: clamp(40px, 8vw, 80px);
             border: 2px solid #FFD700;
             opacity: 0;
+        }
+
+        .text-overlay.show .corner {
             animation: corner-in 1s ease-out forwards;
         }
 
@@ -179,7 +207,10 @@
             left: clamp(20px, 5vw, 50px);
             border-right: none;
             border-bottom: none;
-            animation-delay: calc(var(--text-delay, 0s) + 1s);
+        }
+
+        .text-overlay.show .corner.top-left {
+            animation-delay: 1s;
         }
 
         .corner.top-left::before {
@@ -192,7 +223,10 @@
             right: clamp(20px, 5vw, 50px);
             border-left: none;
             border-bottom: none;
-            animation-delay: calc(var(--text-delay, 0s) + 1.2s);
+        }
+
+        .text-overlay.show .corner.top-right {
+            animation-delay: 1.2s;
         }
 
         .corner.top-right::before {
@@ -205,7 +239,10 @@
             left: clamp(20px, 5vw, 50px);
             border-right: none;
             border-top: none;
-            animation-delay: calc(var(--text-delay, 0s) + 1.4s);
+        }
+
+        .text-overlay.show .corner.bottom-left {
+            animation-delay: 1.4s;
         }
 
         .corner.bottom-left::before {
@@ -218,7 +255,10 @@
             right: clamp(20px, 5vw, 50px);
             border-left: none;
             border-top: none;
-            animation-delay: calc(var(--text-delay, 0s) + 1.6s);
+        }
+
+        .text-overlay.show .corner.bottom-right {
+            animation-delay: 1.6s;
         }
 
         .corner.bottom-right::before {
@@ -369,7 +409,7 @@
 <body>
     <canvas id="canvas"></canvas>
     
-    <div class="text-overlay" style="--text-delay: 0s;">
+    <div class="text-overlay">
         <div class="corner top-left"></div>
         <div class="corner top-right"></div>
         <div class="corner bottom-left"></div>
@@ -380,10 +420,10 @@
         <div class="year-2026">2026</div>
         
         <div class="chinese-greeting">
-            <span style="--char-delay: 0s;">新</span>
-            <span style="--char-delay: 0.3s;">年</span>
-            <span style="--char-delay: 0.6s;">快</span>
-            <span style="--char-delay: 0.9s;">乐</span>
+            <span>新</span>
+            <span>年</span>
+            <span>快</span>
+            <span>乐</span>
         </div>
         
         <div class="english-subtitle">✦ HAPPY NEW YEAR ✦</div>
@@ -407,6 +447,7 @@
         let shootingStars = [];
         let autoLaunchCount = 0;
         let finaleMode = false;
+        let finaleStarted = false;
         let textShown = false;
         let interactiveMode = false;
 
@@ -770,17 +811,19 @@
                     
                     launchRocket(leftX, targetY);
                     launchRocket(rightX, targetY);
+                    
+                    if (!finaleStarted) {
+                        finaleStarted = true;
+                    }
                 }, i * 100);
             }
-
-            setTimeout(showText, 3000);
         }
 
         function showText() {
             if (!textShown) {
                 textShown = true;
                 const overlay = document.querySelector('.text-overlay');
-                overlay.style.setProperty('--text-delay', '0s');
+                overlay.classList.add('show');
                 
                 setTimeout(() => {
                     interactiveMode = true;
@@ -845,6 +888,11 @@
                 if (alive) particle.draw();
                 return alive;
             });
+
+            // Check if finale has started and all fireworks are complete
+            if (finaleStarted && !textShown && rockets.length === 0 && particles.length === 0) {
+                showText();
+            }
 
             requestAnimationFrame(animate);
         }
