@@ -444,7 +444,7 @@
 
         // Constants for timing and thresholds
         const FINALE_COMPLETION_DELAY_MS = 5000; // Wait 5s after finale starts before checking for completion
-        const ROCKET_MAX_AGE = 200; // Max frames before forcing explosion (safety)
+        const ROCKET_MAX_AGE_FRAMES = 200; // Max frames before forcing explosion (safety)
 
         const colors = [
             '#FF6B9D', '#FFA500', '#FFD700', '#FF6347', '#FF1493',
@@ -623,11 +623,12 @@
                 this.vy += 0.1;
                 this.age++;
 
-                // Explode if:
-                // 1. Reached target going up: this.y <= this.targetY
-                // 2. Started falling before reaching target: this.vy > 0 (falling downward)
-                // 3. Safety timeout: been alive too long
-                if (this.y <= this.targetY || this.vy > 0 || this.age > ROCKET_MAX_AGE) {
+                // Explode if any of these conditions are met
+                const reachedTarget = this.y <= this.targetY;
+                const startedFalling = this.vy > 0;
+                const timedOut = this.age > ROCKET_MAX_AGE_FRAMES;
+                
+                if (reachedTarget || startedFalling || timedOut) {
                     this.explode();
                     return false;
                 }
@@ -891,12 +892,15 @@
             });
 
             // Check if finale has completed and show text
+            if (!finaleStarted || textShown) {
+                requestAnimationFrame(animate);
+                return;
+            }
+            
             // Wait for FINALE_COMPLETION_DELAY_MS after finale starts to ensure all delayed particles (crossette) are created
-            if (finaleStarted && !textShown) {
-                const timeSinceFinale = Date.now() - finaleStartTime;
-                if (timeSinceFinale > FINALE_COMPLETION_DELAY_MS && rockets.length === 0 && particles.length === 0) {
-                    showText();
-                }
+            const timeSinceFinale = Date.now() - finaleStartTime;
+            if (timeSinceFinale > FINALE_COMPLETION_DELAY_MS && rockets.length === 0 && particles.length === 0) {
+                showText();
             }
 
             requestAnimationFrame(animate);
